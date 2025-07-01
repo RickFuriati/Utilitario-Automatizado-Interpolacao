@@ -1,6 +1,7 @@
-name: streamlit-conda-env
+name: venv
 channels:
   - conda-forge
+  - default
 dependencies:
   - python=3.10
   - streamlit
