@@ -1,4 +1,4 @@
-name: interpolador
+name: venv
 channels:
   - conda-forge
 dependencies:
