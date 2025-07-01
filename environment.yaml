@@ -2,7 +2,7 @@ name: streamlit-conda-env
 channels:
   - conda-forge
 dependencies:
-  - python=3.12
+  - python
   - streamlit
   - geopandas
   - pandas
