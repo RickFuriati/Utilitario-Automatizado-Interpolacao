@@ -8,7 +8,7 @@ import streamlit as st
 from io import BytesIO
 from shapely.geometry import Point
 #from osgeo import gdal
-#import gdal
+import gdal
 
 
 def interpolation_func(latitude, longitude, variable,mask,interpolation_power,interpolation_smoothing,cmap,title, title_size, legend, legend_size,colorbar_size):
