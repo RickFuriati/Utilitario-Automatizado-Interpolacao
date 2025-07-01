@@ -1,16 +1,16 @@
-name: venv
+name: streamlit-env
 channels:
   - conda-forge
 dependencies:
   - python=3.10
+  - streamlit
   - pandas
   - geopandas
   - numpy
   - matplotlib
   - rasterio
-  - openpyxl
   - shapely
-  - gdal=3.6.0
-  - pip
-  - pip:
-      - streamlit
+  - gdal
+  - fiona
+  - pyproj
+  - openpyxl
