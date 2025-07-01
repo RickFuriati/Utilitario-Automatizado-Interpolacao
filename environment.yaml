@@ -1,11 +1,11 @@
-name: streamlit-env
+name: streamlit-conda-env
 channels:
   - conda-forge
 dependencies:
   - python=3.10
   - streamlit
-  - pandas
   - geopandas
+  - pandas
   - numpy
   - matplotlib
   - rasterio
