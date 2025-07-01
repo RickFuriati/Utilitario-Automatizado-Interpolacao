@@ -1,3 +1,4 @@
+gdal==3.6.2
 streamlit
 pandas
 geopandas
@@ -5,5 +6,4 @@ numpy
 matplotlib
 rasterio
 openpyxl
-gdal
 shapely
