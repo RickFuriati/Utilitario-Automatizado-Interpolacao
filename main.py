@@ -7,7 +7,7 @@ import rasterio
 import streamlit as st
 from io import BytesIO
 from shapely.geometry import Point
-from osgeo import gdal
+#from osgeo import gdal
 import gdal
 
 
