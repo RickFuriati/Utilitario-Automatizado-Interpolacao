@@ -2,4 +2,3 @@ gdal-bin
 libgdal-dev
 libspatialindex-dev
 gdal-data
-python3-gdal
