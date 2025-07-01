@@ -5,3 +5,4 @@ rasterio
 matplotlib
 openpyxl
 shapely
+gdal==3.6.0
