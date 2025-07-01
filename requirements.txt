@@ -1,7 +1,0 @@
-streamlit
-pandas
-geopandas
-rasterio
-matplotlib
-openpyxl
-shapely
