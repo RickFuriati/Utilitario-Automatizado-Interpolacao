@@ -1,4 +1,4 @@
-name: interpolation_env
+name: base
 channels:
   - conda-forge
 dependencies:
