@@ -1,0 +1,16 @@
+name: interpolador
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pandas
+  - geopandas
+  - numpy
+  - matplotlib
+  - rasterio
+  - openpyxl
+  - shapely
+  - gdal=3.6.0
+  - pip
+  - pip:
+      - streamlit
