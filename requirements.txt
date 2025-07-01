@@ -8,4 +8,3 @@ shapely==2.0.2
 fiona==1.9.6     # Para leitura de shapefiles
 pyproj==3.6.1    # Para projeções geográficas
 openpyxl==3.1.2
-pygdal
