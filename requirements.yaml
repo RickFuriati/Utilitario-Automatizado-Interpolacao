@@ -1,0 +1,14 @@
+name: interpolation_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pandas
+  - geopandas
+  - numpy
+  - matplotlib
+  - rasterio
+  - openpyxl
+  - gdal
+  - shapely
