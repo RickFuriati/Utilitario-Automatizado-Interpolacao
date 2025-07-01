@@ -1,2 +1,5 @@
-pip install --upgrade pip
-sudo apt-get install libgdal-dev
+sudo apt update
+sudo apt install -y gdal-bin libgdal-dev python3-gdal
+export CPLUS_INCLUDE_PATH=/usr/include/gdal
+export C_INCLUDE_PATH=/usr/include/gdal
+pip install GDAL==3.6.0 --global-option=build_ext --global-option="-I/usr/include/gdal"
