@@ -21,36 +21,43 @@ def interpolation_func(latitude, longitude, variable, mask,
                        interpolation_power, interpolation_smoothing,
                        cmap, title, title_size, legend, legend_size, colorbar_size):
     
-    # Cria DataFrame com os dados
+    # Garante tipos numéricos
+    latitude = pd.to_numeric(latitude, errors='coerce')
+    longitude = pd.to_numeric(longitude, errors='coerce')
+    variable = pd.to_numeric(variable, errors='coerce')
+
+    # Cria DataFrame e remove valores inválidos
     df = pd.DataFrame({'latitude': latitude, 'longitude': longitude, 'data': variable})
+    df = df.dropna(subset=['latitude', 'longitude', 'data'])
+
+    # Constrói GeoDataFrame
     df['geometry'] = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
     gdf_points = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
 
-    # Cria grade de interpolação
+    # Grade de interpolação
     resolution = 0.01  # grau (~1km)
     minx, miny, maxx, maxy = gdf_points.total_bounds
     grid_x, grid_y = np.meshgrid(
         np.arange(minx, maxx, resolution),
-        np.arange(miny, maxy, resolution)[::-1]  # para manter o norte no topo
+        np.arange(miny, maxy, resolution)[::-1]
     )
     grid_coords = np.vstack((grid_x.ravel(), grid_y.ravel())).T
 
-    # IDW com scikit-learn
+    # Interpolação IDW
     known_coords = np.array(list(zip(df['longitude'], df['latitude'])))
     known_values = df['data'].values
-
     tree = BallTree(known_coords, leaf_size=15)
     k = len(known_coords)
-
     dist, idx = tree.query(grid_coords, k=k)
-    dist += interpolation_smoothing
+
+    dist += max(interpolation_smoothing, 1e-10)  # evita divisão por zero
     weights = 1 / (dist ** interpolation_power)
     weights /= weights.sum(axis=1)[:, None]
 
     interpolated_grid = np.sum(known_values[idx] * weights, axis=1)
     interpolated_grid = interpolated_grid.reshape(grid_x.shape).astype(float)
 
-    # Máscara usando shapefile
+    # Máscara shapefile
     gdf_mask = gpd.read_file(mask).to_crs("EPSG:4326")
     mask_array = features.rasterize(
         [(geom, 1) for geom in gdf_mask.geometry],
@@ -59,16 +66,14 @@ def interpolation_func(latitude, longitude, variable, mask,
         fill=0,
         dtype=np.uint8
     )
-
-    # Aplica a máscara corretamente mantendo o tipo float
     interpolated_grid = np.where(mask_array == 1, interpolated_grid, np.nan)
 
     # Plot
     fig, ax = plt.subplots(figsize=(10, 10))
     extent = [minx, maxx, miny, maxy]
     cax = ax.imshow(interpolated_grid, extent=extent, origin='upper', cmap=cmap)
-
     gdf_mask.boundary.plot(ax=ax, color='black', linewidth=2.5)
+
     ax.set_title(title, fontsize=title_size, pad=20)
     ax.set_axis_off()
 
