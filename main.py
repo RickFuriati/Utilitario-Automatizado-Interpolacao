@@ -7,78 +7,75 @@ import rasterio
 import streamlit as st
 from io import BytesIO
 from shapely.geometry import Point
-from osgeo import gdal
-#import gdal
+from scipy.spatial import cKDTree
+from rasterio.features import geometry_mask
+from matplotlib.colors import Normalize
+from sklearn.neighbors import BallTree
+from rasterio import features
+from rasterio.transform import from_origin
 
 
-def interpolation_func(latitude, longitude, variable,mask,interpolation_power,interpolation_smoothing,cmap,title, title_size, legend, legend_size,colorbar_size):
-    df = pd.DataFrame()
-    df['latitude'] = latitude
-    df['longitude'] = longitude
-    df['data'] = variable
+
+
+def interpolation_func(latitude, longitude, variable, mask,
+                       interpolation_power, interpolation_smoothing,
+                       cmap, title, title_size, legend, legend_size, colorbar_size):
     
-    df['coordinates'] = df[['longitude','latitude']].values.tolist()
-    df['coordinates'] = df['coordinates'].apply(Point)
+    # Cria DataFrame com os dados
+    df = pd.DataFrame({'latitude': latitude, 'longitude': longitude, 'data': variable})
+    df['geometry'] = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
+    gdf_points = gpd.GeoDataFrame(df, geometry='geometry', crs="EPSG:4326")
 
-    os.makedirs('spacial_grid', exist_ok=True)
-    
-    spacial_grid= gpd.GeoDataFrame(df, geometry='coordinates', crs="EPSG:4326")
-    spacial_grid.to_file('spacial_grid/spacial_grid.shp')
+    # Cria grade de interpolação
+    resolution = 0.01  # grau (~1km)
+    minx, miny, maxx, maxy = gdf_points.total_bounds
+    grid_x, grid_y = np.meshgrid(
+        np.arange(minx, maxx, resolution),
+        np.arange(miny, maxy, resolution)[::-1]  # para manter o norte no topo
+    )
+    grid_coords = np.vstack((grid_x.ravel(), grid_y.ravel())).T
 
-    interpolation_parameters = 'invdist:power='+str(interpolation_power)+':smoothing='+str(interpolation_smoothing)
+    # IDW com scikit-learn
+    known_coords = np.array(list(zip(df['longitude'], df['latitude'])))
+    known_values = df['data'].values
 
-    interpolation_file=gdal.Grid('interpolation.tif', 'spacial_grid/spacial_grid.shp',
-                                zfield='data',algorithm=interpolation_parameters)
-    interpolation_file=None
+    tree = BallTree(known_coords, leaf_size=15)
+    k = len(known_coords)
 
-    
-    original_image= gdal.Open('interpolation.tif')
+    dist, idx = tree.query(grid_coords, k=k)
+    dist += interpolation_smoothing
+    weights = 1 / (dist ** interpolation_power)
+    weights /= weights.sum(axis=1)[:, None]
 
-    mask_shapefile=mask
+    interpolated_grid = np.sum(known_values[idx] * weights, axis=1)
+    interpolated_grid = interpolated_grid.reshape(grid_x.shape).astype(float)
 
-    output_raster = 'interpolated_output.tif'
-    input_raster = 'interpolation.tif'
-
-    gdal.Warp(
-        output_raster,
-        input_raster,
-        cutlineDSName=mask_shapefile,
-        cropToCutline=True,
-        dstNodata=-99,  # Valor de NoData fora da máscara
-        xRes=0.01,  # Resolução X
-        yRes=0.01,  # Resolução Y
-        resampleAlg='near'  # Algoritmo de reamostragem
+    # Máscara usando shapefile
+    gdf_mask = gpd.read_file(mask).to_crs("EPSG:4326")
+    mask_array = features.rasterize(
+        [(geom, 1) for geom in gdf_mask.geometry],
+        out_shape=interpolated_grid.shape,
+        transform=from_origin(minx, maxy, resolution, resolution),
+        fill=0,
+        dtype=np.uint8
     )
 
-    with rasterio.open(output_raster) as src:
-        raster_data = src.read(1)  # Lê a primeira banda do raster
-        raster_transform = src.transform  # Obtém a transformação do raster
-        raster_data=np.where(raster_data == -99, np.nan, raster_data)
+    # Aplica a máscara corretamente mantendo o tipo float
+    interpolated_grid = np.where(mask_array == 1, interpolated_grid, np.nan)
 
-    gdf= gpd.read_file(mask_shapefile)
+    # Plot
+    fig, ax = plt.subplots(figsize=(10, 10))
+    extent = [minx, maxx, miny, maxy]
+    cax = ax.imshow(interpolated_grid, extent=extent, origin='upper', cmap=cmap)
 
-    
-    fig, ax = plt.subplots(figsize=(10,10))
-
-    
-    extent = [
-        raster_transform[2], 
-        raster_transform[2] + raster_transform[0] * raster_data.shape[1],
-        raster_transform[5] + raster_transform[4] * raster_data.shape[0],
-        raster_transform[5]
-    ]
-
-    cax = ax.imshow(raster_data, cmap=cmap, extent=extent)
-
-    gdf.plot(ax=ax, edgecolor='black', facecolor='none', linewidth=2.5)
-
-    plt.title(title, fontsize=title_size,pad=20)
-
-    if legend_size > 0 and legend:
-        cbar = plt.colorbar(cax, ax=ax, shrink=colorbar_size/100, pad=0.02)
-        cbar.set_label(legend, fontsize=legend_size,labelpad=20, rotation=90)
-
+    gdf_mask.boundary.plot(ax=ax, color='black', linewidth=2.5)
+    ax.set_title(title, fontsize=title_size, pad=20)
     ax.set_axis_off()
+
+    if legend and legend_size > 0:
+        cbar = plt.colorbar(cax, ax=ax, shrink=colorbar_size / 100, pad=0.02)
+        cbar.set_label(legend, fontsize=legend_size, labelpad=20, rotation=90)
+
     plt.show()
     fig.savefig('interpolated_map.png', bbox_inches='tight', pad_inches=0.1)
 
@@ -319,7 +316,7 @@ def main():
                         df[latitude],
                         df[longitude],
                         df[variable],
-                        shapefile_path if shapefile_data else None,
+                        shapefile_path if shapefile_data else './mask/MG_UF_2024.shp',
                         interpolation_power=interpolation_intensity,
                         interpolation_smoothing=interpolation_smoothing,
                         cmap=st.session_state.selected_colormap,
@@ -330,6 +327,7 @@ def main():
                         colorbar_size=colorbar_size
                     )
                     st.session_state.ready= True
+                    
                 
                     st.success("Interpolação concluída!")
                     st.balloons()
