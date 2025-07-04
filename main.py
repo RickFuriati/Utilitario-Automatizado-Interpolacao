@@ -340,8 +340,8 @@ def main():
                         st.success("Interpolação concluída!")
                         st.balloons()
                     
-                else:
-                    st.error("Por favor, preencha todos os campos necessários para a interpolação.")
+                    else:
+                        st.error("Por favor, preencha todos os campos necessários para a interpolação.")
 
 
         
