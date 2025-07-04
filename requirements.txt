@@ -7,3 +7,4 @@ streamlit
 shapely
 scipy
 scikit-learn
+openpyxl
