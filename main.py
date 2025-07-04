@@ -292,11 +292,10 @@ def main():
                         "Greys", "YlOrRd", "YlGnBu", "YlGn", "BuPu", "GnBu", "PuBu", "OrRd", "PuRd", "RdPu",
                         "Blues_r", "Greens_r", "Reds_r", "Purples_r", "Oranges_r", "Greys_r"]
 
-            st.session_state.selected_colormap = "viridis"
-
+        
             with st.popover("🎨 Escolha o Mapa de Cores",use_container_width=True):
                 st.markdown("Mapa de cores: Outros disponíveis no [Matplotlib](https://matplotlib.org/stable/tutorials/colors/colormaps.html).")
-
+                st.session_state.selected_colormap = "viridis"
                 for cmap in colormaps:
                     col1, col2 = st.columns([3, 1])
                     with col2:
