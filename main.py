@@ -112,6 +112,9 @@ def main():
 
     col1, col2 = st.columns([3, 2])
     st.title("Utilitário Automatizado de Interpolação (UAI)")
+    st.set_page_config(
+        page_title="Utilitário de Interpolação",
+    )
 
 
     if "ready" not in st.session_state:
