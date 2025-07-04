@@ -84,7 +84,7 @@ def interpolation_func(latitude, longitude, variable, mask,
 
     plt.show()
     fig.savefig('interpolated_map.png', bbox_inches='tight', pad_inches=0.1)
-    
+
 
 def generate_colormap_image(cmap_name):
     gradient = np.linspace(0, 1, 256).reshape(1, -1)
@@ -385,7 +385,7 @@ def main():
         **Sobre o desenvolvedor:** Sou estudante de ciência da computação na PUC-MG e acredito na livre cooperação entre mentes das
             mais diversas áreas para o desenvolvimento de soluções inovadoras. A análise de dados geograficamente foi fundamental 
             na minha área de estudo, sobre a previsão de irradiação solar com inteligência artificial, e torço para que também lhe seja útil. 
-            Mesmo que uma única pessoa sequer sinta que essa ferramenta contribuiu de alguma forma em seus estudos, ela cumpriu o seu papel e o meu esfoço terá valido a pena!
+            Mesmo que uma única pessoa sequer sinta que essa ferramenta contribuiu de alguma forma em seus estudos, ela terá cumprido o seu papel.
         
         **Agradecimentos:** Agradecimentos especiais à minha orientadora, Cristiana Brasil Maia, obrigado por tudo 🌹.
 
