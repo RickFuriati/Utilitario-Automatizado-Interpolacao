@@ -211,7 +211,7 @@ def main():
                 key="variable_select"
             )
             title= st.text_input(
-                "Título do Gráfico",
+                "Título do Mapa",
                 value="",
                 key="title_input",
                 placeholder="Digite o título do gráfico"
@@ -224,7 +224,7 @@ def main():
                 key="title_size_slider"
             )
             legend= st.text_input(
-                "Legenda do Gráfico",
+                "Legenda do Mapa",
                 value="",
                 key="legend_input",
                 placeholder="Digite a legenda do gráfico"
@@ -280,6 +280,8 @@ def main():
                         "Greys", "YlOrRd", "YlGnBu", "YlGn", "BuPu", "GnBu", "PuBu", "OrRd", "PuRd", "RdPu",
                         "Blues_r", "Greens_r", "Reds_r", "Purples_r", "Oranges_r", "Greys_r"]
 
+            st.session_state.selected_colormap = "viridis"
+
             with st.popover("🎨 Escolha o Mapa de Cores",use_container_width=True):
                 st.markdown("Mapa de cores: Outros disponíveis no [Matplotlib](https://matplotlib.org/stable/tutorials/colors/colormaps.html).")
 
@@ -316,27 +318,27 @@ def main():
             
             if interpolate_button:
                 st.success("Iniciando a interpolação...")
-                if data_file is not None and latitude and longitude and variable:
-                    interpolation_func(
-                        df[latitude],
-                        df[longitude],
-                        df[variable],
-                        shapefile_path if shapefile_data else './mask/MG_UF_2024.shp',
-                        interpolation_power=interpolation_intensity,
-                        interpolation_smoothing=interpolation_smoothing,
-                        cmap=st.session_state.selected_colormap,
-                        title=title,
-                        title_size=title_size,
-                        legend=legend,
-                        legend_size=legend_size,
-                        colorbar_size=colorbar_size
-                    )
-                    st.session_state.ready= True
+                with st.spinner("Processando (*musica de elevador*)...", show_time=True):
+                    if data_file is not None and latitude and longitude and variable:
+                        interpolation_func(
+                            df[latitude],
+                            df[longitude],
+                            df[variable],
+                            shapefile_path if shapefile_data else './mask/MG_UF_2024.shp',
+                            interpolation_power=interpolation_intensity,
+                            interpolation_smoothing=interpolation_smoothing,
+                            cmap=st.session_state.selected_colormap,
+                            title=title,
+                            title_size=title_size,
+                            legend=legend,
+                            legend_size=legend_size,
+                            colorbar_size=colorbar_size
+                        )
+                        st.session_state.ready= True
+                        
                     
-                
-                    st.success("Interpolação concluída!")
-                    st.balloons()
-                    
+                        st.success("Interpolação concluída!")
+                        st.balloons()
                     
                 else:
                     st.error("Por favor, preencha todos os campos necessários para a interpolação.")
