@@ -84,7 +84,7 @@ def interpolation_func(latitude, longitude, variable, mask,
 
     plt.show()
     fig.savefig('interpolated_map.png', bbox_inches='tight', pad_inches=0.1)
-
+    
 
 def generate_colormap_image(cmap_name):
     gradient = np.linspace(0, 1, 256).reshape(1, -1)
