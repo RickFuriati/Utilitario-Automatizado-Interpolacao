@@ -13,7 +13,8 @@ from matplotlib.colors import Normalize
 from sklearn.neighbors import BallTree
 from rasterio import features
 from rasterio.transform import from_origin
-
+import csv
+from io import StringIO
 
 
 
@@ -180,8 +181,16 @@ def main():
             if data_file is not None:
                 
                 if data_file.name.endswith('.csv'):
-                    df = pd.read_csv(data_file,skiprows=header)
+
+                    stringio = StringIO(data_file.getvalue().decode("utf-8"))
+                    sample = stringio.read(1024)
+                    stringio.seek(0)
+                    sniffer = csv.Sniffer()
+                    dialect = sniffer.sniff(sample)
+
+                    df = pd.read_csv(data_file,skiprows=header,delimiter=dialect.delimiter)
                     df = df.iloc[int(skiprows):]
+                    
                 elif data_file.name.endswith('.xlsx'):
                     df = pd.read_excel(data_file, skiprows=header)
                     df = df.iloc[int(skiprows):]
